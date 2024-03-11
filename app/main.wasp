@@ -171,6 +171,30 @@ entity Logs {=psl
   level                    String
 psl=}
 
+entity Campaign {=psl
+  id                       Int             @id @default(autoincrement())
+  name                     String
+  description              String
+  startDate                DateTime
+  endDate                  DateTime
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+  user                     User            @relation(fields: [userId], references: [id])
+  userId                   Int
+  tweetPattern             String
+  tweets                   Tweet[]         @relation(fields: [id], references: [campaignId])
+psl=}
+
+entity Tweet {=psl
+  id                       Int             @id @default(autoincrement())
+  success                  Boolean         @default(false)
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+  campaign                 Campaign        @relation(fields: [campaignId], references: [id])
+  campaignId               Int
+  code                     String
+psl=}
+
 /* 📡 These are the Wasp Routes (You can protect them easily w/ 'authRequired: true');
  * https://wasp-lang.dev/docs/tutorial/pages
  */
@@ -340,6 +364,10 @@ action createFile {
   entities: [User, File]
 }
 
+action createCampaign {
+  fn: import { createCampaign } from "@src/server/actions.js",
+  entities: [User, Campaign]
+}
 
 // 📚 Queries
 
@@ -371,6 +399,11 @@ query getDailyStats {
 query getPaginatedUsers {
   fn: import { getPaginatedUsers } from "@src/server/queries.js",
   entities: [User]
+}
+
+query getUserCampaigns {
+  fn: import { getUserCampaigns } from "@src/server/queries.js",
+  entities: [User, Campaign]
 }
 
 /*
