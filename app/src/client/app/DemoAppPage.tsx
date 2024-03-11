@@ -1,4 +1,4 @@
-import { type Task } from 'wasp/entities';
+import type { Task } from 'wasp/entities';
 
 import {
   generateGptResponse,
@@ -12,7 +12,7 @@ import {
 import { useState, useMemo } from 'react';
 import { CgSpinner } from 'react-icons/cg';
 import { TiDelete } from 'react-icons/ti';
-import { type GeneratedSchedule } from '../../shared/types';
+import type { GeneratedSchedule } from '../../shared/types';
 import { MainTask, Subtask } from '../../shared/types';
 import { cn } from '../../shared/utils';
 
@@ -32,7 +32,6 @@ export default function DemoAppPage() {
         {/* begin AI-powered Todo List */}
         <div className='my-8 border rounded-3xl border-gray-900/10 dark:border-gray-100/10'>
           <div className='sm:w-[90%] md:w-[70%] lg:w-[50%] py-10 px-6 mx-auto my-8 space-y-10'>
-            <NewTaskForm handleCreateTask={createTask} />
           </div>
         </div>
         {/* end AI-powered Todo List */}

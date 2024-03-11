@@ -164,3 +164,31 @@ export const getPaginatedUsers: GetPaginatedUsers<GetPaginatedUsersInput, GetPag
     totalPages,
   };
 };
+
+export const getUserCampaigns = async (userId: number, context: any) => {
+  let campaigns = await context.entities.Campaign.findMany({
+    where: {
+      user: {
+        id: userId,
+      },
+    },
+  });
+  return campaigns;
+}
+
+export const getCampaignById = async (campaignId: number, context: any) => {
+  let campaign = await context.entities.Campaign.findFirst({
+    where: {
+      id: campaignId,
+      user: {
+        id: context.user.id,
+      },
+    },
+  });
+
+  if (!campaign) {
+    throw new HttpError(404, 'Campaign not found');
+  }
+
+  return campaign;
+}

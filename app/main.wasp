@@ -97,6 +97,7 @@ entity User {=psl
   contactFormMessages       ContactFormMessage[]     
   tasks                     Task[]
   files                     File[]
+  campaigns                 Campaign[]
 psl=}
 
 entity GptResponse {=psl
@@ -175,24 +176,25 @@ entity Campaign {=psl
   id                       Int             @id @default(autoincrement())
   name                     String
   description              String
+  tweetPattern             String
+  webhookUrl               String          @default("")
   startDate                DateTime
   endDate                  DateTime
   createdAt                DateTime        @default(now())
   updatedAt                DateTime        @updatedAt
   user                     User            @relation(fields: [userId], references: [id])
   userId                   Int
-  tweetPattern             String
-  tweets                   Tweet[]         @relation(fields: [id], references: [campaignId])
+  share                    Share[] 
 psl=}
 
-entity Tweet {=psl
+entity Share {=psl
   id                       Int             @id @default(autoincrement())
+  code                     String
   success                  Boolean         @default(false)
   createdAt                DateTime        @default(now())
   updatedAt                DateTime        @updatedAt
   campaign                 Campaign        @relation(fields: [campaignId], references: [id])
   campaignId               Int
-  code                     String
 psl=}
 
 /* 📡 These are the Wasp Routes (You can protect them easily w/ 'authRequired: true');
@@ -229,10 +231,17 @@ page SignupPage {
 //   component: import { EmailVerification } from "@src/client/auth/EmailVerification",
 // }
 
-route DemoAppRoute { path: "/demo-app", to: DemoAppPage }
-page DemoAppPage {
+route CampaignsPageRoute { path: "/campaigns", to: CampaignsPage }
+page CampaignsPage {
   authRequired: true,
-  component: import DemoAppPage from "@src/client/app/DemoAppPage"
+  component: import CampaignsPage from "@src/client/app/CampaignsPage"
+}
+
+route EditCampaignPageRoute { path: "/campaigns/:id/edit", to: EditCampaignPage }
+route NewCampaignPageRoute { path: "/campaigns/new", to: EditCampaignPage }
+page EditCampaignPage {
+  authRequired: true,
+  component: import EditCampaign from "@src/client/app/EditCampaignPage"
 }
 
 route PricingPageRoute { path: "/pricing", to: PricingPage }
@@ -252,11 +261,11 @@ page CheckoutPage {
   component: import Checkout from "@src/client/app/CheckoutPage"
 }
 
-route FileUploadRoute { path: "/file-upload", to: FileUploadPage }
-page FileUploadPage {
-  authRequired: true,
-  component: import FileUpload from "@src/client/app/FileUploadPage"
-}
+// route FileUploadRoute { path: "/file-upload", to: FileUploadPage }
+// page FileUploadPage {
+//   authRequired: true,
+//   component: import FileUpload from "@src/client/app/FileUploadPage"
+// }
 
 route AdminRoute { path: "/admin", to: DashboardPage }
 page DashboardPage {
@@ -369,6 +378,11 @@ action createCampaign {
   entities: [User, Campaign]
 }
 
+action updateCampaign {
+  fn: import { updateCampaign } from "@src/server/actions.js",
+  entities: [Campaign]
+}
+
 // 📚 Queries
 
 query getGptResponses {
@@ -404,6 +418,11 @@ query getPaginatedUsers {
 query getUserCampaigns {
   fn: import { getUserCampaigns } from "@src/server/queries.js",
   entities: [User, Campaign]
+}
+
+query getCampaignById {
+  fn: import { getCampaignById } from "@src/server/queries.js",
+  entities: [Campaign]
 }
 
 /*

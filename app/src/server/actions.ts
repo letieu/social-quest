@@ -1,4 +1,4 @@
-import { type User, type Task, type File } from 'wasp/entities';
+import { type User, type Task, type File, type Campaign } from 'wasp/entities';
 import { HttpError } from 'wasp/server';
 import {
   type GenerateGptResponse,
@@ -9,6 +9,8 @@ import {
   type DeleteTask,
   type UpdateTask,
   type CreateFile,
+  type CreateCampaign,
+  UpdateCampaign,
 } from 'wasp/server/operations';
 import Stripe from 'stripe';
 import type { GeneratedSchedule, StripePaymentResult } from '../shared/types';
@@ -334,3 +336,51 @@ export const updateCurrentUser: UpdateCurrentUser<Partial<User>, User> = async (
     data: user,
   });
 };
+
+export const createCampaign: CreateCampaign<
+  Pick<Campaign, 'name' | 'description' | 'tweetPattern' | 'webhookUrl'>,
+  Campaign
+  > = async (createDto, context) => {
+    if (!context.user) {
+      throw new HttpError(401);
+    }
+
+    const campaign = await context.entities.Campaign.create({
+      data: {
+        ...createDto,
+        startDate: new Date(),
+        endDate: new Date(),
+        user: { connect: { id: context.user.id } },
+      },
+    });
+
+    return campaign;
+  };
+
+export const updateCampaign: UpdateCampaign<Partial<Campaign>, Campaign> = async (updateDto, context) => {
+  if (!context.user) {
+    throw new HttpError(401);
+  }
+
+  const campaign = await context.entities.Campaign.findFirst({
+    where: {
+      id: updateDto.id,
+      user: {
+        id: context.user.id,
+      },
+    },
+  });
+
+  if (!campaign) {
+    throw new HttpError(404, 'Campaign not found');
+  }
+
+  await context.entities.Campaign.update({
+    where: {
+      id: updateDto.id,
+    },
+    data: updateDto,
+  });
+
+  return campaign;
+}
