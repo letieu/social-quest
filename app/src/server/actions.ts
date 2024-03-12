@@ -1,4 +1,4 @@
-import { type User, type Task, type File, type Campaign } from 'wasp/entities';
+import { type User, type Task, type File, type Campaign, Share } from 'wasp/entities';
 import { HttpError } from 'wasp/server';
 import {
   type GenerateGptResponse,
@@ -11,6 +11,8 @@ import {
   type CreateFile,
   type CreateCampaign,
   UpdateCampaign,
+  CreateShare,
+  DeleteCampain,
 } from 'wasp/server/operations';
 import Stripe from 'stripe';
 import type { GeneratedSchedule, StripePaymentResult } from '../shared/types';
@@ -383,4 +385,61 @@ export const updateCampaign: UpdateCampaign<Partial<Campaign>, Campaign> = async
   });
 
   return campaign;
+}
+
+export const deleteCampaign: DeleteCampain<number, Campaign> = async (id, context) => {
+  if (!context.user) {
+    throw new HttpError(401);
+  }
+
+  const campaign = await context.entities.Campaign.findFirst({
+    where: {
+      id,
+      user: {
+        id: context.user.id,
+      },
+    },
+  });
+
+  if (!campaign) {
+    throw new HttpError(404, 'Campaign not found');
+  }
+
+  await context.entities.Campaign.delete({
+    where: {
+      id,
+    },
+  });
+
+  return campaign;
+}
+
+export const createShare: CreateShare<{ campaignId: number; }, Share> = async ({ campaignId }, context) => {
+  if (!context.user) {
+    throw new HttpError(401);
+  }
+
+  const campaign = await context.entities.Campaign.findFirst({
+    where: {
+      id: campaignId,
+      user: {
+        id: context.user.id,
+      },
+    }
+  });
+
+  if (!campaign) {
+    throw new HttpError(404, 'Campaign not found');
+  }
+
+  const randomCode = Math.random().toString(36).substring(7);
+
+  const share = await context.entities.Share.create({
+    data: {
+      code: randomCode,
+      campaign: { connect: { id: campaignId } },
+    }
+  });
+
+  return share;
 }

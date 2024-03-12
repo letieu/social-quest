@@ -1,21 +1,18 @@
 import { useState } from 'react';
-import { RouteComponentProps } from 'react-router-dom';
-import { createCampaign, getCampaignById, updateCampaign, useQuery } from 'wasp/client/operations';
+import { RouteComponentProps, useHistory } from 'react-router-dom';
+import { createCampaign, deleteCampain, getCampaignById, updateCampaign, useQuery } from 'wasp/client/operations';
 import { Campaign } from 'wasp/entities';
-
-const skipToken: typeof getCampaignById = () => {
-  return new Promise((resolve) => { resolve(undefined) });
-}
 
 export default function EditCampaignPage(
   props: RouteComponentProps<{ id?: string }>
 ) {
+  console.log('EditCampaignPage', props.match.params.id)
   const isEditing = !!props.match.params.id;
   const campaignId = props.match.params.id ? parseInt(props.match.params.id) : 0;
 
   const { data: campaign, isLoading: isCampaignLoading } = useQuery(
-    campaignId ? getCampaignById : skipToken,
-    campaignId,
+    getCampaignById,
+    { campaignId },
   );
 
   return (
@@ -29,7 +26,7 @@ export default function EditCampaignPage(
 
         <div className='my-8 border rounded-3xl border-gray-900/10 dark:border-gray-100/10'>
           <div className='sm:w-[90%] md:w-[70%] lg:w-[50%] py-10 px-6 mx-auto my-8 space-y-10'>
-            <CampaignForm isEditing={isEditing} editCampaign={campaign} />
+            <CampaignForm isEditing={isEditing} editCampaign={campaign || undefined} />
           </div>
         </div>
       </div>
@@ -39,8 +36,7 @@ export default function EditCampaignPage(
 
 function CampaignForm({ isEditing, editCampaign }: { isEditing: boolean, editCampaign?: Campaign }) {
   const [submitting, setSubmitting] = useState(false);
-
-  console.log('isEditing', editCampaign);
+  const history = useHistory();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -59,20 +55,34 @@ function CampaignForm({ isEditing, editCampaign }: { isEditing: boolean, editCam
           webhookUrl: formData.get('webhookUrl') as string,
           tweetPattern: formData.get('tweetPattern') as string,
         });
+
+        history.push(`/campaigns/${editCampaign?.id}`);
       } else {
-        await createCampaign({
+        const created = await createCampaign({
           name: formData.get('name') as string,
           description: formData.get('description') as string,
           webhookUrl: formData.get('webhookUrl') as string,
           tweetPattern: formData.get('tweetPattern') as string,
         });
-      }
 
-      // TODO: navigate to the campaigns page
+        history.push(`/campaigns/${created.id}`);
+      }
     } catch (err: any) {
       window.alert('Error: ' + err.message)
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!isEditing) {
+      return;
+    }
+
+    if (window.confirm('Are you sure you want to delete this campaign?')) {
+      console.log('delete campaign', editCampaign?.id)
+      await deleteCampain(+editCampaign?.id!)
+      history.push('/campaigns');
     }
   }
 
@@ -152,9 +162,19 @@ https://example.com"
           ></textarea>
         </div>
 
-        <button className="flex w-full justify-center rounded bg-primary p-3 font-medium text-white" type="submit" disabled={submitting}>
-          {isEditing ? 'Save' : 'Create'} Campaign
-        </button>
+        <div className="flex justify-center gap-4">
+          <button className="flex w-full justify-center rounded bg-primary p-3 font-medium text-white" type="submit" disabled={submitting}>
+            {isEditing ? 'Save' : 'Create'} Campaign
+          </button>
+          {isEditing && <button
+            className="flex w-full justify-center rounded bg-danger p-3 font-medium text-white"
+            type="button"
+            onClick={handleDelete}
+            disabled={submitting}
+          >
+            Delete
+          </button>}
+        </div>
       </div>
     </form >
   );

@@ -18,7 +18,7 @@ export default function LandingPage() {
 
   const { data: user, isLoading: isUserLoading } = useAuth();
 
-  const NavLogo = () => <img className='h-8 w-8' src={logo} alt='Your SaaS App' />;
+  const NavLogo = () => <img className='h-8 w-8' src={logo} alt='SharePli' />;
 
   return (
     <div className='bg-white dark:text-white dark:bg-boxdark-2'>
@@ -31,7 +31,7 @@ export default function LandingPage() {
               className='flex items-center -m-1.5 p-1.5 text-gray-900 duration-300 ease-in-out hover:text-yellow-500'
             >
               <NavLogo />
-              <span className='ml-2 text-sm font-semibold leading-6 dark:text-white'>Your Saas</span>
+              <span className='ml-2 text-sm font-semibold leading-6 dark:text-white'>SharePli</span>
             </a>
           </div>
           <div className='flex lg:hidden'>
@@ -78,7 +78,7 @@ export default function LandingPage() {
           <Dialog.Panel className='fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10 dark:bg-boxdark dark:text-white'>
             <div className='flex items-center justify-between'>
               <a href='/' className='-m-1.5 p-1.5'>
-                <span className='sr-only'>Your SaaS</span>
+                <span className='sr-only'>SharePli</span>
                 <NavLogo />
               </a>
               <button

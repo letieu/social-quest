@@ -6,7 +6,7 @@ import {
 } from 'wasp/client/operations';
 
 import { cn } from '../../shared/utils';
-import { FaPlus } from 'react-icons/fa';
+import { FaEye, FaPen, FaPlus } from 'react-icons/fa';
 import { Link } from 'wasp/client/router';
 
 export default function CampaignsPage() {
@@ -86,13 +86,21 @@ function CampaignItem({ id, name }: CampaignProps) {
           </span>
         </div>
       </div>
-      <div className='flex items-center justify-end w-15'>
+      <div className='flex items-center justify-end w-15 gap-2'>
+        <Link to={`/campaigns/:id`} params={{ id }}>
+          <button
+            type='button'
+            className='font-medium text-gray-800/90 bg-yellow-50 shadow-md ring-1 ring-inset ring-slate-200 py-2 px-4 rounded-md hover:bg-yellow-100 duration-200 ease-in-out focus:outline-none focus:shadow-none hover:shadow-none'
+          >
+            <FaEye className='inline-block' />
+          </button>
+        </Link>
         <Link to={`/campaigns/:id/edit`} params={{ id }}>
           <button
             type='button'
             className='font-medium text-gray-800/90 bg-yellow-50 shadow-md ring-1 ring-inset ring-slate-200 py-2 px-4 rounded-md hover:bg-yellow-100 duration-200 ease-in-out focus:outline-none focus:shadow-none hover:shadow-none'
           >
-            Edit
+            <FaPen className='inline-block' />
           </button>
         </Link>
       </div>

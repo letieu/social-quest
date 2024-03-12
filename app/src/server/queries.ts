@@ -1,4 +1,4 @@
-import { type DailyStats, type GptResponse, type User, type PageViewSource, type Task, type File } from 'wasp/entities';
+import { type DailyStats, type GptResponse, type User, type PageViewSource, type Task, type File, Campaign, Share } from 'wasp/entities';
 import { HttpError } from 'wasp/server';
 import {
   type GetGptResponses,
@@ -7,6 +7,9 @@ import {
   type GetAllTasksByUser,
   type GetAllFilesByUser,
   type GetDownloadFileSignedURL,
+  type GetUserCampaigns,
+  GetCampaignById,
+  GetSharesByCampaign,
 } from 'wasp/server/operations';
 import { getDownloadFileSignedURLFromS3 } from './file-upload/s3Utils.js';
 
@@ -165,18 +168,26 @@ export const getPaginatedUsers: GetPaginatedUsers<GetPaginatedUsersInput, GetPag
   };
 };
 
-export const getUserCampaigns = async (userId: number, context: any) => {
+export const getUserCampaigns: GetUserCampaigns<void, Campaign[]> = async (_args, context) => {
+  if (!context.user) {
+    throw new HttpError(401);
+  }
+
   let campaigns = await context.entities.Campaign.findMany({
     where: {
       user: {
-        id: userId,
+        id: context.user.id,
       },
     },
   });
   return campaigns;
 }
 
-export const getCampaignById = async (campaignId: number, context: any) => {
+export const getCampaignById: GetCampaignById<{ campaignId: number }, Campaign | null> = async ({ campaignId }, context) => {
+  if (!context.user) {
+    throw new HttpError(401);
+  }
+
   let campaign = await context.entities.Campaign.findFirst({
     where: {
       id: campaignId,
@@ -191,4 +202,19 @@ export const getCampaignById = async (campaignId: number, context: any) => {
   }
 
   return campaign;
+}
+
+export const getSharesByCampaign: GetSharesByCampaign<{ campaignId: number }, Share[]> = async ({ campaignId }, context) => {
+  let shares = await context.entities.Share.findMany({
+    where: {
+      campaign: {
+        id: campaignId,
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  return shares;
 }

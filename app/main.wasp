@@ -53,7 +53,7 @@ app OpenSaaS {
       // },
     },
     onAuthFailedRedirectTo: "/login",
-    onAuthSucceededRedirectTo: "/demo-app",
+    onAuthSucceededRedirectTo: "/campaigns",
   },
   db: { 
     system: PostgreSQL,
@@ -193,7 +193,7 @@ entity Share {=psl
   success                  Boolean         @default(false)
   createdAt                DateTime        @default(now())
   updatedAt                DateTime        @updatedAt
-  campaign                 Campaign        @relation(fields: [campaignId], references: [id])
+  campaign                 Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   campaignId               Int
 psl=}
 
@@ -237,11 +237,17 @@ page CampaignsPage {
   component: import CampaignsPage from "@src/client/app/CampaignsPage"
 }
 
-route EditCampaignPageRoute { path: "/campaigns/:id/edit", to: EditCampaignPage }
 route NewCampaignPageRoute { path: "/campaigns/new", to: EditCampaignPage }
+route EditCampaignPageRoute { path: "/campaigns/:id/edit", to: EditCampaignPage }
 page EditCampaignPage {
   authRequired: true,
   component: import EditCampaign from "@src/client/app/EditCampaignPage"
+}
+
+route DetailCampaignPageRoute { path: "/campaigns/:id", to: DetailCampaignPage }
+page DetailCampaignPage {
+  authRequired: true,
+  component: import DetailCampaign from "@src/client/app/DetailCampaignPage"
 }
 
 route PricingPageRoute { path: "/pricing", to: PricingPage }
@@ -383,6 +389,16 @@ action updateCampaign {
   entities: [Campaign]
 }
 
+action deleteCampain {
+  fn: import { deleteCampaign } from "@src/server/actions.js",
+  entities: [Campaign]
+}
+
+action createShare {
+  fn: import { createShare } from "@src/server/actions.js",
+  entities: [Campaign, Share]
+}
+
 // 📚 Queries
 
 query getGptResponses {
@@ -423,6 +439,11 @@ query getUserCampaigns {
 query getCampaignById {
   fn: import { getCampaignById } from "@src/server/queries.js",
   entities: [Campaign]
+}
+
+query getSharesByCampaign {
+  fn: import { getSharesByCampaign } from "@src/server/queries.js",
+  entities: [Campaign,Share]
 }
 
 /*
